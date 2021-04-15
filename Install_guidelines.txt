@@ -1,0 +1,30 @@
+####################################################################################################
+Intallation guidelines (linux)
+####################################################################################################
+
+Step 1 : Build OpenCV from source
+    Clone OpenCV OpenCV_contrib available at:
+        https://github.com/opencv/opencv.git
+        https://github.com/opencv/opencv_contrib.git
+
+    To build OpenCV from source you can create a build/ folder inside opencv/ and run cmake, make and make install from there.
+        Make sure to have basic packages already installed (build-essential, cmake, git, libjpeg8-dev, libpng-dev, ligbtk2.0-dev, pkg-config ...).
+        Make sure to add an option in cmake command to specify where opencv_contrib/ is (by adding -D OPENCV_EXTRA_MODULES_PATH=path/to/opencv_contrib/modules).
+
+####################################################################################################
+
+Step 2 : Compile the provided code mainTp1.cpp
+    I provide a little CMakeLists.txt to help you. Again, create a build folder, run cmake and make from there to compile and create an executable called mainTp1
+        Note that for next TPs, you will have to edit CMakeLists.txt to create new executables from other .cpp files.
+
+    You may have to fix some issues in mainTp1.cpp to compile successfully (the code was for an old version of OpenCV).
+    What I had to do for mainTp1.cpp:
+        Replace CV_WINDOW_AUTOSIZE by WINDOW_AUTOSIZE
+        Replace cvWaitKey(); by waitKey();
+        Replace CV_LOAD_IMAGE_COLOR by cv::IMREAD_COLOR
+
+####################################################################################################
+
+Step 3 : You are ready to go
+
+####################################################################################################
