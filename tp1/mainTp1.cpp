@@ -126,8 +126,7 @@ int main(int argc, char** argv){
     return -1;
   }
 
-  Mat inputImageSrc;  
-  Mat inputImage_compressed;
+  Mat inputImageSrc;
 
   // Ouvrir l'image d'entr�e et v�rifier que l'ouverture du fichier se d�roule normalement
   inputImageSrc = imread(argv[1], IMREAD_COLOR);
@@ -136,21 +135,14 @@ int main(int argc, char** argv){
 		waitKey(0); // Wait for a keystroke in the window
         return -1;
   }
-
-  inputImage_compressed = imread(argv[2], IMREAD_COLOR);
-  if(!inputImageSrc.data ) { // Check for invalid input
-        std::cout <<  "Could not open or find the image " << argv[2] << std::endl ;
-		waitKey(0); // Wait for a keystroke in the window
-        return -1;
-  }
   
-  imshow("InputImageSrcBGR", inputImageSrc);  
-  waitKey();
-  imshow("inputImage_compressed", inputImage_compressed);  
-  waitKey();
+  //imshow("InputImageSrcBGR", inputImageSrc);  
+  //waitKey();
+  bool check = imwrite("../Save/res.jpg", inputImageSrc);
+  std::cout << check << std::endl;
 
-  double computed_eqm = eqm(inputImageSrc, inputImage_compressed);
-  std::cout << "computed_eqm :" << computed_eqm << std::endl;
+  //double computed_eqm = eqm(inputImageSrc, inputImage_compressed);
+  //std::cout << "computed_eqm :" << computed_eqm << std::endl;
    
   return 0;
 }
