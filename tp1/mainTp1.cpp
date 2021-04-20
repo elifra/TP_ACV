@@ -78,6 +78,11 @@ Mat norm_0_255(InputArray _src) {
  return dst;
 }
 
+//Conversion BGR --> YCrCb
+void bgrToYCbCr(const Mat & src, const Mat & out) {
+	cvtColor(src, out, cv::COLOR_BGR2YCrCb);
+}
+
 //=======================================================================================
 // EQM
 //=======================================================================================
@@ -112,7 +117,12 @@ double psnr(const Mat & imgSrc, const Mat & imgDeg)
 //=======================================================================================
 void distortionMap(const vector<Mat> & imgSrc, const vector<Mat> & imgDeg, Mat &distoMap)
 {
- 
+
+	for(int i = 0; i < imgSrc.size(); i++) {
+		for(int j = 0; j < imgSrc.size(); j++) {
+
+		}
+	}
 }
 
 //=======================================================================================
@@ -136,9 +146,16 @@ int main(int argc, char** argv){
         return -1;
   }
   
-  //imshow("InputImageSrcBGR", inputImageSrc);  
-  //waitKey();
-  bool check = imwrite("../Save/res.jpg", inputImageSrc);
+  //Save Image BGR
+  bool check = imwrite("../Save/imBGR.jpg", inputImageSrc);
+  std::cout << check << std::endl;
+
+  //Conversion en YCbCR
+  Mat imYCrCb;
+  bgrToYCbCr(inputImageSrc,imYCrCb);
+  
+  //Save ImageYCbCr
+  check = imwrite("../Save/imYCrCb.jpg", imYCrCb);
   std::cout << check << std::endl;
 
   //double computed_eqm = eqm(inputImageSrc, inputImage_compressed);
