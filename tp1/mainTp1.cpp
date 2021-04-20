@@ -108,21 +108,8 @@ double eqm(const Mat & img1, const Mat & img2)
 double psnr(const Mat & imgSrc, const Mat & imgDeg)
 {
 	double EQM = eqm(imgSrc,imgDeg);
-	double PSNR = 10*log(255*255/EQM);
+	double PSNR = 10*log10(255*255/EQM);
 	return PSNR;
-}
-
-//=======================================================================================
-// distortionMap
-//=======================================================================================
-void distortionMap(const vector<Mat> & imgSrc, const vector<Mat> & imgDeg, Mat &distoMap)
-{
-
-	for(int i = 0; i < imgSrc.size(); i++) {
-		for(int j = 0; j < imgSrc.size(); j++) {
-
-		}
-	}
 }
 
 //=======================================================================================
@@ -146,11 +133,31 @@ int main(int argc, char** argv){
         return -1;
   }
 
-  Mat inputImageSrcDeg;
+  Mat inputImageDeg2;
 
   // Ouvrir l'image d'entr�e et v�rifier que l'ouverture du fichier se d�roule normalement
-  inputImageSrcDeg = imread(argv[2], IMREAD_COLOR);
-  if(!inputImageSrcDeg.data ) { // Check for invalid input
+  inputImageDeg2 = imread(argv[2], IMREAD_COLOR);
+  if(!inputImageDeg2.data ) { // Check for invalid input
+        std::cout <<  "Could not open or find the image " << argv[1] << std::endl ;
+		waitKey(0); // Wait for a keystroke in the window
+        return -1;
+  }
+
+  Mat inputImageDeg10;
+
+  // Ouvrir l'image d'entr�e et v�rifier que l'ouverture du fichier se d�roule normalement
+  inputImageDeg10 = imread(argv[3], IMREAD_COLOR);
+  if(!inputImageDeg10.data ) { // Check for invalid input
+        std::cout <<  "Could not open or find the image " << argv[1] << std::endl ;
+		waitKey(0); // Wait for a keystroke in the window
+        return -1;
+  }
+
+  Mat inputImageDeg80;
+
+  // Ouvrir l'image d'entr�e et v�rifier que l'ouverture du fichier se d�roule normalement
+  inputImageDeg80 = imread(argv[4], IMREAD_COLOR);
+  if(!inputImageDeg80.data ) { // Check for invalid input
         std::cout <<  "Could not open or find the image " << argv[1] << std::endl ;
 		waitKey(0); // Wait for a keystroke in the window
         return -1;
@@ -180,14 +187,14 @@ int main(int argc, char** argv){
   /*****
    * PSNR
    *****/
-  Mat imYCrCbDEG;
-  bgrToYCbCr(inputImageSrcDeg,imYCrCbDEG);
-  check = imwrite("../Save/imYCrCbDEG.jpg", imYCrCbDEG);
+  Mat imYCrCbDEG2;
+  bgrToYCbCr(inputImageDeg2,imYCrCbDEG2);
+  check = imwrite("../Save/imYCrCbDEG2.jpg", imYCrCbDEG2);
   std::vector<Mat> canauxDEG;
-  split(imYCrCbDEG,canauxDEG);
+  split(imYCrCbDEG2,canauxDEG);
   i = 0;
   for(Mat im : canauxDEG) {
-	check = imwrite("../Save/im"+noms[i]+"DEG.jpg", im);
+	check = imwrite("../Save/im"+noms[i]+"DEG2.jpg", im);
 	i++;
   }
   double PSNR;
@@ -196,6 +203,62 @@ int main(int argc, char** argv){
 	cout << "PSNR pour canal : " << noms[j] << endl;
 	cout << PSNR << endl;
   }
+
+   /*****
+   * Carte erreur
+   *****/
+  Mat Y = canaux[0];
+  Mat Ydeg = canauxDEG[0];
+  Mat carteErreur = Y - Ydeg + 128;
+  check = imwrite("../Save/carteErreurDeg2.jpg", carteErreur);
+
+  /*****
+   * 3.4
+   *****/
+  Mat imYCbCrDeg10;
+  bgrToYCbCr(inputImageDeg10,imYCbCrDeg10);
+  Mat imYCbCrDeg80;
+  bgrToYCbCr(inputImageDeg80,imYCbCrDeg80);
+
+  std::vector<Mat> canauxDeg10;
+  split(imYCbCrDeg10, canauxDeg10);
+  std::vector<Mat> canauxDeg80;
+  split(imYCbCrDeg80, canauxDeg80);
+
+  i = 0;
+  for(Mat im : canauxDeg10) {
+	check = imwrite("../Save/im"+noms[i]+"DEG10.jpg", im);
+	i++;
+  }
+  i = 0;
+  for(Mat im : canauxDeg80) {
+	check = imwrite("../Save/im"+noms[i]+"DEG80.jpg", im);
+	i++;
+  }
+  PSNR = psnr(canaux[0],canauxDeg10[0]);
+  cout << "PSNR pour canal Y image de base et image Deg10 " << endl;
+  cout << PSNR << endl;
+
+  PSNR = psnr(canaux[0],canauxDeg80[0]);
+  cout << "PSNR pour canal Y image de base et image Deg80 " << endl;
+  cout << PSNR << endl;
+
+  /*****
+   * Courbe
+   *****/
+  PSNR = psnr(imYCrCb,imYCrCbDEG2);
+  cout << "PSNR image de base et image Deg2 " << endl;
+  cout << PSNR << endl;
+
+  PSNR = psnr(imYCrCb,imYCbCrDeg10);
+  cout << "PSNR image de base et image Deg10 " << endl;
+  cout << PSNR << endl;
+
+  PSNR = psnr(imYCrCb,imYCbCrDeg80);
+  cout << "PSNR image de base et image Deg80 " << endl;
+  cout << PSNR << endl;
+
+
   //double computed_eqm = eqm(inputImageSrc, inputImage_compressed);
   //std::cout << "computed_eqm :" << computed_eqm << std::endl;
    
