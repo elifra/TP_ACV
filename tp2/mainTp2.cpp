@@ -33,7 +33,7 @@ void computeHistogram(const Mat& inputComponent, Mat& myHist)
 //=======================================================================================
 // displayHistogram
 //=======================================================================================
-void displayHistogram(const Mat& myHist)
+void displayHistogram(const Mat& myHist, std::string name)
 {
 	// Establish the number of bins
 	int histSize = 256;	
@@ -51,9 +51,7 @@ void displayHistogram(const Mat& myHist)
 		line( histImage, Point( bin_w*(i-1), hist_h - cvRound(myHistNorm.at<float>(i-1)) ) , Point( bin_w*(i), hist_h - cvRound(myHistNorm.at<float>(i)) ), Scalar( 255, 255, 255), 2, 8, 0 );		
 	}
 	/// Display
-	namedWindow("Display Histo", WINDOW_AUTOSIZE );
-	imshow("Display Histo", histImage );
-	waitKey();
+	bool check = imwrite("../Save/histo"+name+".jpg", histImage);
 }
 
 //=======================================================================================
@@ -79,7 +77,7 @@ Mat norm_0_255(InputArray _src) {
 }
 
 //Conversion BGR --> YCrCb
-void bgrToYCbCr(const Mat & src, const Mat & out) {
+void bgrToYCbCr(Mat & src, Mat & out) {
 	cvtColor(src, out, cv::COLOR_BGR2YCrCb);
 }
 
@@ -108,21 +106,23 @@ double eqm(const Mat & img1, const Mat & img2)
 double psnr(const Mat & imgSrc, const Mat & imgDeg)
 {
 	double EQM = eqm(imgSrc,imgDeg);
-	double PSNR = 10*log(255*255/EQM);
+	double PSNR = 10*log10(255*255/EQM);
 	return PSNR;
 }
 
 //=======================================================================================
-// distortionMap
+// entropie
 //=======================================================================================
-void distortionMap(const vector<Mat> & imgSrc, const vector<Mat> & imgDeg, Mat &distoMap)
+double entropie(Mat & imgSrc)
 {
-
-	for(int i = 0; i < imgSrc.size(); i++) {
-		for(int j = 0; j < imgSrc.size(); j++) {
-
-		}
+	Mat histo;
+   	computeHistogram(imgSrc,histo);
+	double res = 0;
+	for(int i = 0; i < histo.rows; i++) {
+		float proba = histo.at<float>(i)/(imgSrc.rows*imgSrc.cols);
+		if(proba > 0) res += proba*log2(proba);
 	}
+	return -res;
 }
 
 //=======================================================================================
@@ -145,21 +145,23 @@ int main(int argc, char** argv){
 		waitKey(0); // Wait for a keystroke in the window
         return -1;
   }
-  
-  //Save Image BGR
-  bool check = imwrite("../Save/imBGR.jpg", inputImageSrc);
-  std::cout << check << std::endl;
 
   //Conversion en YCbCR
   Mat imYCrCb;
   bgrToYCbCr(inputImageSrc,imYCrCb);
   
   //Save ImageYCbCr
-  check = imwrite("../Save/imYCrCb.jpg", imYCrCb);
-  std::cout << check << std::endl;
+  bool check = imwrite("../Save/imYCrCb.jpg", imYCrCb);
+  //std::cout << check << std::endl;
 
-  //double computed_eqm = eqm(inputImageSrc, inputImage_compressed);
-  //std::cout << "computed_eqm :" << computed_eqm << std::endl;
+  std::vector<Mat> canaux;
+  split(imYCrCb,canaux);
+  std::string noms[] = {"Y","Cr","Cb"};
+  int i = 0;
+  for(Mat im : canaux) {
+	check = imwrite("../Save/im"+noms[i]+".jpg", im);
+	i++;
+  }
    
   return 0;
 }
