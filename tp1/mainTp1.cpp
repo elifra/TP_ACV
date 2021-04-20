@@ -79,7 +79,7 @@ Mat norm_0_255(InputArray _src) {
 }
 
 //Conversion BGR --> YCrCb
-void bgrToYCbCr(const Mat & src, const Mat & out) {
+void bgrToYCbCr(Mat & src, Mat & out) {
 	cvtColor(src, out, cv::COLOR_BGR2YCrCb);
 }
 
@@ -145,10 +145,20 @@ int main(int argc, char** argv){
 		waitKey(0); // Wait for a keystroke in the window
         return -1;
   }
+
+  Mat inputImageSrcDeg;
+
+  // Ouvrir l'image d'entr�e et v�rifier que l'ouverture du fichier se d�roule normalement
+  inputImageSrcDeg = imread(argv[2], IMREAD_COLOR);
+  if(!inputImageSrcDeg.data ) { // Check for invalid input
+        std::cout <<  "Could not open or find the image " << argv[1] << std::endl ;
+		waitKey(0); // Wait for a keystroke in the window
+        return -1;
+  }
   
   //Save Image BGR
   bool check = imwrite("../Save/imBGR.jpg", inputImageSrc);
-  std::cout << check << std::endl;
+  //std::cout << check << std::endl;
 
   //Conversion en YCbCR
   Mat imYCrCb;
@@ -156,8 +166,36 @@ int main(int argc, char** argv){
   
   //Save ImageYCbCr
   check = imwrite("../Save/imYCrCb.jpg", imYCrCb);
-  std::cout << check << std::endl;
+  //std::cout << check << std::endl;
 
+  std::vector<Mat> canaux;
+  split(imYCrCb,canaux);
+  std::string noms[] = {"Y","Cr","Cb"};
+  int i = 0;
+  for(Mat im : canaux) {
+	check = imwrite("../Save/im"+noms[i]+".jpg", im);
+	i++;
+  }
+
+  /*****
+   * PSNR
+   *****/
+  Mat imYCrCbDEG;
+  bgrToYCbCr(inputImageSrcDeg,imYCrCbDEG);
+  check = imwrite("../Save/imYCrCbDEG.jpg", imYCrCbDEG);
+  std::vector<Mat> canauxDEG;
+  split(imYCrCbDEG,canauxDEG);
+  i = 0;
+  for(Mat im : canauxDEG) {
+	check = imwrite("../Save/im"+noms[i]+"DEG.jpg", im);
+	i++;
+  }
+  double PSNR;
+  for(int j = 0; j < 3; j++) {
+	PSNR = psnr(canaux[j],canauxDEG[j]);
+	cout << "PSNR pour canal : " << noms[j] << endl;
+	cout << PSNR << endl;
+  }
   //double computed_eqm = eqm(inputImageSrc, inputImage_compressed);
   //std::cout << "computed_eqm :" << computed_eqm << std::endl;
    
