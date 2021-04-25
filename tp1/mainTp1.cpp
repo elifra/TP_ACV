@@ -51,7 +51,7 @@ void displayHistogram(const Mat& myHist, std::string name)
 		line( histImage, Point( bin_w*(i-1), hist_h - cvRound(myHistNorm.at<float>(i-1)) ) , Point( bin_w*(i), hist_h - cvRound(myHistNorm.at<float>(i)) ), Scalar( 255, 255, 255), 2, 8, 0 );		
 	}
 	/// Display
-	bool check = imwrite("../Save/histo"+name+".jpg", histImage);
+	bool check = imwrite("../SaveTP1/histo"+name+".jpg", histImage);
 }
 
 //=======================================================================================
@@ -116,7 +116,7 @@ double psnr(const Mat & imgSrc, const Mat & imgDeg)
 double entropie(Mat & imgSrc)
 {
 	Mat histo;
-   	computeHistogram(imgSrc,histo);
+  computeHistogram(imgSrc,histo);
 	double res = 0;
 	for(int i = 0; i < histo.rows; i++) {
 		float proba = histo.at<float>(i)/(imgSrc.rows*imgSrc.cols);
@@ -177,7 +177,7 @@ int main(int argc, char** argv){
   }
   
   //Save Image BGR
-  bool check = imwrite("../Save/imBGR.jpg", inputImageSrc);
+  bool check = imwrite("../SaveTP1/imBGR.jpg", inputImageSrc);
   //std::cout << check << std::endl;
 
   //Conversion en YCbCR
@@ -185,7 +185,7 @@ int main(int argc, char** argv){
   bgrToYCbCr(inputImageSrc,imYCrCb);
   
   //Save ImageYCbCr
-  check = imwrite("../Save/imYCrCb.jpg", imYCrCb);
+  check = imwrite("../SaveTP1/imYCrCb.jpg", imYCrCb);
   //std::cout << check << std::endl;
 
   std::vector<Mat> canaux;
@@ -193,7 +193,7 @@ int main(int argc, char** argv){
   std::string noms[] = {"Y","Cr","Cb"};
   int i = 0;
   for(Mat im : canaux) {
-	check = imwrite("../Save/im"+noms[i]+".jpg", im);
+	check = imwrite("../SaveTP1/im"+noms[i]+".jpg", im);
 	i++;
   }
 
@@ -202,12 +202,12 @@ int main(int argc, char** argv){
    *****/
   Mat imYCrCbDEG2;
   bgrToYCbCr(inputImageDeg2,imYCrCbDEG2);
-  check = imwrite("../Save/imYCrCbDEG2.jpg", imYCrCbDEG2);
+  check = imwrite("../SaveTP1/imYCrCbDEG2.jpg", imYCrCbDEG2);
   std::vector<Mat> canauxDEG;
   split(imYCrCbDEG2,canauxDEG);
   i = 0;
   for(Mat im : canauxDEG) {
-	check = imwrite("../Save/im"+noms[i]+"DEG2.jpg", im);
+	check = imwrite("../SaveTP1/im"+noms[i]+"DEG2.jpg", im);
 	i++;
   }
   double PSNR;
@@ -223,7 +223,7 @@ int main(int argc, char** argv){
   Mat Y = canaux[0];
   Mat Ydeg = canauxDEG[0];
   Mat carteErreur = Y - Ydeg + 128;
-  check = imwrite("../Save/carteErreurDeg2.jpg", carteErreur);
+  check = imwrite("../SaveTP1/carteErreurDeg2.jpg", carteErreur);
 
   /*****
    * 3.4
@@ -240,12 +240,12 @@ int main(int argc, char** argv){
 
   i = 0;
   for(Mat im : canauxDeg10) {
-	check = imwrite("../Save/im"+noms[i]+"DEG10.jpg", im);
+	check = imwrite("../SaveTP1/im"+noms[i]+"DEG10.jpg", im);
 	i++;
   }
   i = 0;
   for(Mat im : canauxDeg80) {
-	check = imwrite("../Save/im"+noms[i]+"DEG80.jpg", im);
+	check = imwrite("../SaveTP1/im"+noms[i]+"DEG80.jpg", im);
 	i++;
   }
   PSNR = psnr(canaux[0],canauxDeg10[0]);
@@ -285,6 +285,54 @@ int main(int argc, char** argv){
 
   //double computed_eqm = eqm(inputImageSrc, inputImage_compressed);
   //std::cout << "computed_eqm :" << computed_eqm << std::endl;
+
+   /*****
+   * Histogramme des cartes d'erreur
+   *****/
+
+  //Image de base
+  Mat carteErreurImagedeBase = Y - Y + 128;
+  check = imwrite("../SaveTP1/carteErreurImagedebase.jpg", carteErreurImagedeBase);
+
+  cout << "Entropie Y carte erreur Image de base" << endl;
+  cout << entropie(carteErreurImagedeBase) << endl;
+
+  Mat histoCarteErreurBase;
+  computeHistogram(carteErreurImagedeBase,histoCarteErreurBase);
+  displayHistogram(histoCarteErreurBase, "CarteErreurBase");
+
+  //Image degQ2
+  cout << "Entropie Y carte erreur Image Deg2" << endl;
+  cout << entropie(carteErreur) << endl;
+
+  Mat histoCarteErreurDeg2;
+  computeHistogram(carteErreur,histoCarteErreurDeg2);
+  displayHistogram(histoCarteErreurDeg2, "CarteErreurDeg2");
+
+  //Image degQ10
+  Mat Ydeg10 = canauxDeg10[0];
+  Mat carteErreurImageDeg10 = Y - Ydeg10 + 128;
+  check = imwrite("../SaveTP1/carteErreurImageDeg10.jpg", carteErreurImageDeg10);
+
+  cout << "Entropie Y carte erreur Image Deg10" << endl;
+  cout << entropie(carteErreurImageDeg10) << endl;
+
+  Mat histoCarteErreurDeg10;
+  computeHistogram(carteErreurImageDeg10,histoCarteErreurDeg10);
+  displayHistogram(histoCarteErreurDeg10, "CarteErreurDeg10");
+
+  //Image degQ80
+  Mat Ydeg80 = canauxDeg80[0];
+  Mat carteErreurImageDeg80 = Y - Ydeg80 + 128;
+  check = imwrite("../SaveTP1/carteErreurImageDeg80.jpg", carteErreurImageDeg80);
+
+  cout << "Entropie Y carte erreur Image Deg80" << endl;
+  cout << entropie(carteErreurImageDeg80) << endl;
+
+  Mat histoCarteErreurDeg80;
+  computeHistogram(carteErreurImageDeg80,histoCarteErreurDeg80);
+  displayHistogram(histoCarteErreurDeg80, "CarteErreurDeg80");
+
    
   return 0;
 }
