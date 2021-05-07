@@ -165,6 +165,166 @@ void dctCoeffs(const Mat & in, Mat & outColor, Mat & out) {
 	applyColorMap(out, outColor, COLORMAP_JET);
 }
 
+//=======================================================================================
+// recopier Block
+//=======================================================================================
+void RecopieBlock(const Mat & in, Mat & out,int i,int j) {
+	for(int i2 = 0; i2 < 8; i2++) {
+		for(int j2 = 0; j2 < 8; j2++) {
+			out.at<float>(i+i2,j+j2) =in.at<float>(i2,j2);
+		}
+	}
+}
+
+//=======================================================================================
+// filtre A
+//=======================================================================================
+void filtreA(Mat & in) {
+	Mat filtre = Mat(8,8, CV_32FC1);
+	for(int i=0;i<in.rows;i++){
+		for(int j=0;j<in.cols;j++){
+			filtre.at<float>(i,j) =0;
+		}
+	}
+
+	filtre.at<float>(0,0) =1.f;
+	filtre.at<float>(0,1) =1.f;
+	filtre.at<float>(0,2) =1.f;
+	filtre.at<float>(0,3) =1.f;
+	filtre.at<float>(0,4) =1.f;
+	filtre.at<float>(1,0) =1.f;
+	filtre.at<float>(1,1) =1.f;
+	filtre.at<float>(1,2) =1.f;
+	filtre.at<float>(1,3) =1.f;
+	filtre.at<float>(2,0) =1.f;
+	filtre.at<float>(2,1) =1.f;
+	filtre.at<float>(2,2) =1.f;
+	filtre.at<float>(3,0) =1.f;
+	filtre.at<float>(3,1) =1.f;
+	filtre.at<float>(4,0) =1.f;
+	for(int i=0;i<in.rows;i++){
+		for(int j=0;j<in.cols;j++){
+			in.at<float>(i,j) =in.at<float>(i,j)*filtre.at<float>(i,j);
+		}
+	}
+}
+
+//=======================================================================================
+// filtre B
+//=======================================================================================
+void filtreB(Mat & in,int mode) {
+	Mat filtre = Mat(8,8, CV_32FC1);
+
+	filtre.at<float>(0,0) =16.f/255.f;
+	filtre.at<float>(0,1) =11.f/255.f;
+	filtre.at<float>(0,2) =10.f/255.f;
+	filtre.at<float>(0,3) =16.f/255.f;
+	filtre.at<float>(0,4) =24.f/255.f;
+	filtre.at<float>(0,5) =40.f/255.f;
+	filtre.at<float>(0,6) =51.f/255.f;
+	filtre.at<float>(0,7) =61.f/255.f;
+
+	filtre.at<float>(1,0) =12.f/255.f;
+	filtre.at<float>(1,1) =12.f/255.f;
+	filtre.at<float>(1,2) =14.f/255.f;
+	filtre.at<float>(1,3) =19.f/255.f;
+	filtre.at<float>(1,4) =26.f/255.f;
+	filtre.at<float>(1,5) =58.f/255.f;
+	filtre.at<float>(1,6) =60.f/255.f;
+	filtre.at<float>(1,7) =55.f/255.f;
+
+	filtre.at<float>(2,0) =14.f/255.f;
+	filtre.at<float>(2,1) =13.f/255.f;
+	filtre.at<float>(2,2) =16.f/255.f;
+	filtre.at<float>(2,3) =24.f/255.f;
+	filtre.at<float>(2,4) =40.f/255.f;
+	filtre.at<float>(2,5) =57.f/255.f;
+	filtre.at<float>(2,6) =69.f/255.f;
+	filtre.at<float>(2,7) =26.f/255.f;
+
+	filtre.at<float>(3,0) =14.f/255.f;
+	filtre.at<float>(3,1) =17.f/255.f;
+	filtre.at<float>(3,2) =22.f/255.f;
+	filtre.at<float>(3,3) =29.f/255.f;
+	filtre.at<float>(3,4) =51.f/255.f;
+	filtre.at<float>(3,5) =87.f/255.f;
+	filtre.at<float>(3,6) =80.f/255.f;
+	filtre.at<float>(3,7) =62.f/255.f;
+
+	filtre.at<float>(4,0) =18.f/255.f;
+	filtre.at<float>(4,1) =22.f/255.f;
+	filtre.at<float>(4,2) =37.f/255.f;
+	filtre.at<float>(4,3) =56.f/255.f;
+	filtre.at<float>(4,4) =68.f/255.f;
+	filtre.at<float>(4,5) =109.f/255.f;
+	filtre.at<float>(4,6) =103.f/255.f;
+	filtre.at<float>(4,7) =77.f/255.f;
+
+	filtre.at<float>(5,0) =24.f/255.f;
+	filtre.at<float>(5,1) =35.f/255.f;
+	filtre.at<float>(5,2) =55.f/255.f;
+	filtre.at<float>(5,3) =64.f/255.f;
+	filtre.at<float>(5,4) =81.f/255.f;
+	filtre.at<float>(5,5) =104.f/255.f;
+	filtre.at<float>(5,6) =113.f/255.f;
+	filtre.at<float>(5,7) =92.f/255.f;
+
+	filtre.at<float>(6,0) =49.f/255.f;
+	filtre.at<float>(6,1) =64.f/255.f;
+	filtre.at<float>(6,2) =78.f/255.f;
+	filtre.at<float>(6,3) =87.f/255.f;
+	filtre.at<float>(6,4) =103.f/255.f;
+	filtre.at<float>(6,5) =121.f/255.f;
+	filtre.at<float>(6,6) =120.f/255.f;
+	filtre.at<float>(6,7) =101.f/255.f;
+	
+	filtre.at<float>(7,0) =72.f/255.f;
+	filtre.at<float>(7,1) =92.f/255.f;
+	filtre.at<float>(7,2) =95.f/255.f;
+	filtre.at<float>(7,3) =98.f/255.f;
+	filtre.at<float>(7,4) =112.f/255.f;
+	filtre.at<float>(7,5) =100.f/255.f;
+	filtre.at<float>(7,6) =103.f/255.f;
+	filtre.at<float>(7,7) =99.f/255.f;
+
+	if(mode == 1){
+		for(int i=0;i<in.rows;i++){
+			for(int j=0;j<in.cols;j++){
+				in.at<float>(i,j) = round( in.at<float>(i,j)/filtre.at<float>(i,j) );
+			}
+		}
+	}
+	if(mode == 2){
+		for(int i=0;i<in.rows;i++){
+			for(int j=0;j<in.cols;j++){
+				in.at<float>(i,j) = in.at<float>(i,j)*filtre.at<float>(i,j);
+			}
+		}
+	}
+}
+
+//=======================================================================================
+// DCT par blocs
+//=======================================================================================
+void dctParBlocs(const Mat & in, Mat & DCT,Mat & DCTinv, int choix) {
+	for(int i = 0; i < in.rows; i = i+8) {
+		for(int j = 0; j < in.cols; j = j+8) {
+			Mat bloc = in(Rect(j,i,8,8));
+
+			Mat DCTBloc;
+			dct(bloc,DCTBloc);
+			if(choix == 1) filtreA(DCTBloc);
+			if(choix == 2) filtreB(DCTBloc,1);
+			RecopieBlock(DCTBloc,DCT,i,j);
+
+			Mat DCTBlocInv;
+			if(choix == 2) filtreB(DCTBloc,2);
+			dct(DCTBloc,DCTBlocInv,DCT_INVERSE);
+			RecopieBlock(DCTBlocInv,DCTinv,i,j);
+		}
+	}
+}
+
 
 //=======================================================================================
 //=======================================================================================
@@ -228,6 +388,10 @@ int main(int argc, char** argv){
   cout << "6 : carré en bas à gauche" << endl;
   cin >> choixFiltre;
 
+  /*
+  * Étude DCT image 
+  */
+
   for(Mat im : canaux) {
 	//dct
 	dct(im,dIm);
@@ -235,12 +399,12 @@ int main(int argc, char** argv){
 	saveImage(dIm, imSaveDct, "DCT"+noms[i]);
 
 	//Filtre
-	if(choixFiltre == 1) dIm(Rect(dIm.rows/2, dIm.cols/2, dIm.rows/2, dIm.cols/2)) = 0;
-	else if(choixFiltre == 2) dIm(Rect(0, dIm.cols/2, dIm.rows, dIm.cols/2)) = 0;
-	else if(choixFiltre == 3) dIm(Rect(dIm.rows/2, 0, dIm.rows/2, dIm.cols)) = 0;
-	else if(choixFiltre == 4) dIm(Rect(dIm.rows/2, 0, dIm.rows/2, dIm.cols/2)) = 0;
-	else if(choixFiltre == 5) dIm(Rect(0, 0, dIm.rows/2, dIm.cols/2)) = 0;
-	else if(choixFiltre == 6) dIm(Rect(0, dIm.cols/2, dIm.rows/2, dIm.cols/2)) = 0;
+	if(choixFiltre == 1) dIm(Rect(dIm.cols/2, dIm.rows/2, dIm.cols/2, dIm.rows/2)) = 0;
+	else if(choixFiltre == 2) dIm(Rect(0, dIm.rows/2, dIm.cols, dIm.rows/2)) = 0;
+	else if(choixFiltre == 3) dIm(Rect(dIm.cols/2, 0, dIm.cols/2, dIm.rows)) = 0;
+	else if(choixFiltre == 4) dIm(Rect(dIm.cols/2, 0, dIm.cols/2, dIm.rows/2)) = 0;
+	else if(choixFiltre == 5) dIm(Rect(0, 0, dIm.cols/2, dIm.rows/2)) = 0;
+	else if(choixFiltre == 6) dIm(Rect(0, dIm.rows/2, dIm.cols/2, dIm.rows/2)) = 0;
 
 	//dct coeffs
 	Mat coeffsDCTColor;
@@ -275,6 +439,31 @@ int main(int argc, char** argv){
 	std::cout << "PSNR " << noms[i] << " = " << psnrFloat(im, dinvIm) << std::endl;
 	i++;
   }
+
+  /*
+  * Étude DCT blocs 8*8
+  */
+   cout << "Nombre de lignes : " << imYCrCb.rows << endl;
+   cout << "Nombre de colonnes : " << imYCrCb.cols << endl;
+
+  i = 0;
+  cout << "DCT par blocs : " << endl;
+  cout << "0 : sans filtre " << endl;
+  cout << "1 : avec filtre a) : " << endl;
+  cout << "2 : avec filtre b) : " << endl;
+  int choix;
+  cin >> choix;
+  for(Mat im : canaux) {
+	   	Mat DCT = Mat(im.rows,im.cols, CV_32FC1);
+	  	Mat DCTinv = Mat(im.rows,im.cols, CV_32FC1);
+	  	dctParBlocs(im,DCT,DCTinv, choix);
+	  	Mat imSaveDct;
+		saveImage(DCT, imSaveDct, "DCTBlocs"+noms[i]);
+		Mat imSaveInvDct;
+		saveImage(DCTinv, imSaveInvDct, "DCTBlocsInv"+noms[i]);
+		i++;
+  }
+
 
   
    
