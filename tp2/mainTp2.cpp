@@ -461,6 +461,8 @@ int main(int argc, char** argv){
 		saveImage(DCT, imSaveDct, "DCTBlocs"+noms[i]);
 		Mat imSaveInvDct;
 		saveImage(DCTinv, imSaveInvDct, "DCTBlocsInv"+noms[i]);
+
+		cout << "PSNR blocs " << noms[i] << " = " << psnrFloat(im, DCTinv) << endl;
 		i++;
   }
 
