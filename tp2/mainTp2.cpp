@@ -406,6 +406,23 @@ int main(int argc, char** argv){
 	else if(choixFiltre == 5) dIm(Rect(0, 0, dIm.cols/2, dIm.rows/2)) = 0;
 	else if(choixFiltre == 6) dIm(Rect(0, dIm.rows/2, dIm.cols/2, dIm.rows/2)) = 0;
 
+	//Enregistrement filtre
+	Mat masque = Mat(dIm.rows,dIm.cols, CV_32FC1);
+	for (int ligne = 0; ligne < dIm.rows; ligne++) {
+		for (int colonne = 0; colonne < dIm.cols; colonne++) {
+			masque.at<float>(ligne, colonne) = 1;
+		}
+	}
+	if (choixFiltre == 1) masque(Rect(dIm.cols / 2, dIm.rows / 2, dIm.cols / 2, dIm.rows / 2)) = 0;
+	else if (choixFiltre == 2) masque(Rect(0, dIm.rows / 2, dIm.cols, dIm.rows / 2)) = 0;
+	else if (choixFiltre == 3) masque(Rect(dIm.cols / 2, 0, dIm.cols / 2, dIm.rows)) = 0;
+	else if (choixFiltre == 4) masque(Rect(dIm.cols / 2, 0, dIm.cols / 2, dIm.rows / 2)) = 0;
+	else if (choixFiltre == 5) masque(Rect(0, 0, dIm.cols / 2, dIm.rows / 2)) = 0;
+	else if (choixFiltre == 6) masque(Rect(0, dIm.rows / 2, dIm.cols / 2, dIm.rows / 2)) = 0;
+
+	Mat saveMasque;
+	saveImage(masque, saveMasque, "Masque");
+
 	//dct coeffs
 	Mat coeffsDCTColor;
 	Mat coeffsDCT;
