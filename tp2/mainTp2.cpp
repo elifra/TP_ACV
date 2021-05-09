@@ -386,6 +386,7 @@ int main(int argc, char** argv){
   cout << "4 : carré en haut à droite" << endl;
   cout << "5 : carré en haut à gauche" << endl;
   cout << "6 : carré en bas à gauche" << endl;
+  cout << "7 : annulation fréquence nulle" << endl;
   cin >> choixFiltre;
 
   /*
@@ -405,6 +406,7 @@ int main(int argc, char** argv){
 	else if(choixFiltre == 4) dIm(Rect(dIm.cols/2, 0, dIm.cols/2, dIm.rows/2)) = 0;
 	else if(choixFiltre == 5) dIm(Rect(0, 0, dIm.cols/2, dIm.rows/2)) = 0;
 	else if(choixFiltre == 6) dIm(Rect(0, dIm.rows/2, dIm.cols/2, dIm.rows/2)) = 0;
+	if (choixFiltre == 7) dIm.at<float>(0, 0) = 0;
 
 	//Enregistrement filtre
 	Mat masque = Mat(dIm.rows,dIm.cols, CV_32FC1);
