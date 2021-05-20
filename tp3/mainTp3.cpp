@@ -16,7 +16,7 @@ void saveImage(const Mat & src, Mat & out, std::string name) {
 	Mat tmp;
 	src.convertTo(tmp, CV_8UC1, 255);
 	out = tmp;
-	imwrite("../SaveTP2/im"+name+".bmp", out);
+	imwrite("../SaveTP3/im"+name+".bmp", out);
 }
 
 //=======================================================================================
@@ -147,184 +147,95 @@ double entropie(Mat & imgSrc)
 }
 
 //=======================================================================================
-// Coeffs dct
+// Prédicteur MICD MONO
 //=======================================================================================
-void dctCoeffs(const Mat & in, Mat & outColor, Mat & out) {
-	Mat inUCHAR;
-	in.convertTo(inUCHAR, CV_8UC1, 255);
-	Mat outCalcul = Mat(inUCHAR.rows, inUCHAR.cols, CV_8UC1);
-	out = Mat(inUCHAR.rows, inUCHAR.cols, CV_8UC1);
 
-	double min, max;
-	minMaxLoc(inUCHAR,&min,&max);
-	for(int i = 0; i < in.rows; i++) {
-		for(int j = 0; j < in.cols; j++) {
-			out.at<uchar>(i,j) = log(1+abs(inUCHAR.at<uchar>(i,j)))/log(1+max)*255;
-		}
-	}
-	applyColorMap(out, outColor, COLORMAP_JET);
+uchar micdMono(const Mat & imY, int i, int j) {
+	if(j > 0) return imY.at<uchar>(i,j-1);
+	else return 128;
 }
 
 //=======================================================================================
-// recopier Block
+// Prédicteur MICD Bi
 //=======================================================================================
-void RecopieBlock(const Mat & in, Mat & out,int i,int j) {
-	for(int i2 = 0; i2 < 8; i2++) {
-		for(int j2 = 0; j2 < 8; j2++) {
-			out.at<float>(i+i2,j+j2) =in.at<float>(i2,j2);
-		}
-	}
+
+uchar micdBi(const Mat & imY, int i, int j) {
+	uchar a = 128;
+	uchar c = 128;
+	if(i > 0) c = imY.at<uchar>(i-1,j);
+	if(j > 0) a = imY.at<uchar>(i,j-1);
+	return (a+c)/2;
 }
 
 //=======================================================================================
-// filtre A
+// Prédicteur MICDA
 //=======================================================================================
-void filtreA(Mat & in) {
-	Mat filtre = Mat(8,8, CV_32FC1);
-	for(int i=0;i<in.rows;i++){
-		for(int j=0;j<in.cols;j++){
-			filtre.at<float>(i,j) =0;
-		}
-	}
 
-	filtre.at<float>(0,0) =1.f;
-	filtre.at<float>(0,1) =1.f;
-	filtre.at<float>(0,2) =1.f;
-	filtre.at<float>(0,3) =1.f;
-	filtre.at<float>(0,4) =1.f;
-	filtre.at<float>(1,0) =1.f;
-	filtre.at<float>(1,1) =1.f;
-	filtre.at<float>(1,2) =1.f;
-	filtre.at<float>(1,3) =1.f;
-	filtre.at<float>(2,0) =1.f;
-	filtre.at<float>(2,1) =1.f;
-	filtre.at<float>(2,2) =1.f;
-	filtre.at<float>(3,0) =1.f;
-	filtre.at<float>(3,1) =1.f;
-	filtre.at<float>(4,0) =1.f;
-	for(int i=0;i<in.rows;i++){
-		for(int j=0;j<in.cols;j++){
-			in.at<float>(i,j) =in.at<float>(i,j)*filtre.at<float>(i,j);
-		}
+uchar micda(const Mat & imY, int i, int j) {
+	uchar a = 128;
+	uchar b = 128;
+	uchar c = 128;
+	uchar d = 128;
+	if(i > 0) 
+	{
+		b = imY.at<uchar>(i-1,j-1);
+		c = imY.at<uchar>(i-1,j);
+		d = imY.at<uchar>(i-1,j+1);
+	}
+	if(j > 0) a = imY.at<uchar>(i,j-1);
+	if(abs(c-b)<abs(a-b)){
+		return a;
+	}
+	else{
+		return c;
 	}
 }
 
 //=======================================================================================
-// filtre B
+// Quantification
 //=======================================================================================
-void filtreB(Mat & in,int mode) {
-	Mat filtre = Mat(8,8, CV_32FC1);
 
-	filtre.at<float>(0,0) =16.f/255.f;
-	filtre.at<float>(0,1) =11.f/255.f;
-	filtre.at<float>(0,2) =10.f/255.f;
-	filtre.at<float>(0,3) =16.f/255.f;
-	filtre.at<float>(0,4) =24.f/255.f;
-	filtre.at<float>(0,5) =40.f/255.f;
-	filtre.at<float>(0,6) =51.f/255.f;
-	filtre.at<float>(0,7) =61.f/255.f;
-
-	filtre.at<float>(1,0) =12.f/255.f;
-	filtre.at<float>(1,1) =12.f/255.f;
-	filtre.at<float>(1,2) =14.f/255.f;
-	filtre.at<float>(1,3) =19.f/255.f;
-	filtre.at<float>(1,4) =26.f/255.f;
-	filtre.at<float>(1,5) =58.f/255.f;
-	filtre.at<float>(1,6) =60.f/255.f;
-	filtre.at<float>(1,7) =55.f/255.f;
-
-	filtre.at<float>(2,0) =14.f/255.f;
-	filtre.at<float>(2,1) =13.f/255.f;
-	filtre.at<float>(2,2) =16.f/255.f;
-	filtre.at<float>(2,3) =24.f/255.f;
-	filtre.at<float>(2,4) =40.f/255.f;
-	filtre.at<float>(2,5) =57.f/255.f;
-	filtre.at<float>(2,6) =69.f/255.f;
-	filtre.at<float>(2,7) =26.f/255.f;
-
-	filtre.at<float>(3,0) =14.f/255.f;
-	filtre.at<float>(3,1) =17.f/255.f;
-	filtre.at<float>(3,2) =22.f/255.f;
-	filtre.at<float>(3,3) =29.f/255.f;
-	filtre.at<float>(3,4) =51.f/255.f;
-	filtre.at<float>(3,5) =87.f/255.f;
-	filtre.at<float>(3,6) =80.f/255.f;
-	filtre.at<float>(3,7) =62.f/255.f;
-
-	filtre.at<float>(4,0) =18.f/255.f;
-	filtre.at<float>(4,1) =22.f/255.f;
-	filtre.at<float>(4,2) =37.f/255.f;
-	filtre.at<float>(4,3) =56.f/255.f;
-	filtre.at<float>(4,4) =68.f/255.f;
-	filtre.at<float>(4,5) =109.f/255.f;
-	filtre.at<float>(4,6) =103.f/255.f;
-	filtre.at<float>(4,7) =77.f/255.f;
-
-	filtre.at<float>(5,0) =24.f/255.f;
-	filtre.at<float>(5,1) =35.f/255.f;
-	filtre.at<float>(5,2) =55.f/255.f;
-	filtre.at<float>(5,3) =64.f/255.f;
-	filtre.at<float>(5,4) =81.f/255.f;
-	filtre.at<float>(5,5) =104.f/255.f;
-	filtre.at<float>(5,6) =113.f/255.f;
-	filtre.at<float>(5,7) =92.f/255.f;
-
-	filtre.at<float>(6,0) =49.f/255.f;
-	filtre.at<float>(6,1) =64.f/255.f;
-	filtre.at<float>(6,2) =78.f/255.f;
-	filtre.at<float>(6,3) =87.f/255.f;
-	filtre.at<float>(6,4) =103.f/255.f;
-	filtre.at<float>(6,5) =121.f/255.f;
-	filtre.at<float>(6,6) =120.f/255.f;
-	filtre.at<float>(6,7) =101.f/255.f;
-	
-	filtre.at<float>(7,0) =72.f/255.f;
-	filtre.at<float>(7,1) =92.f/255.f;
-	filtre.at<float>(7,2) =95.f/255.f;
-	filtre.at<float>(7,3) =98.f/255.f;
-	filtre.at<float>(7,4) =112.f/255.f;
-	filtre.at<float>(7,5) =100.f/255.f;
-	filtre.at<float>(7,6) =103.f/255.f;
-	filtre.at<float>(7,7) =99.f/255.f;
-
-	if(mode == 1){
-		for(int i=0;i<in.rows;i++){
-			for(int j=0;j<in.cols;j++){
-				in.at<float>(i,j) = round( in.at<float>(i,j)/filtre.at<float>(i,j) );
-			}
-		}
+void quantif(int choix,int & val, int & valQuantif) {
+	if(choix==0){
+		valQuantif = val;
 	}
-	if(mode == 2){
-		for(int i=0;i<in.rows;i++){
-			for(int j=0;j<in.cols;j++){
-				in.at<float>(i,j) = in.at<float>(i,j)*filtre.at<float>(i,j);
-			}
+	else{
+		if(val>0){
+			valQuantif = (int) (val/choix)*choix + choix;
+		}
+		else{
+			valQuantif = (int) (val/choix)*choix;
 		}
 	}
 }
 
-//=======================================================================================
-// DCT par blocs
-//=======================================================================================
-void dctParBlocs(const Mat & in, Mat & DCT,Mat & DCTinv, int choix) {
-	for(int i = 0; i < in.rows; i = i+8) {
-		for(int j = 0; j < in.cols; j = j+8) {
-			Mat bloc = in(Rect(j,i,8,8));
 
-			Mat DCTBloc;
-			dct(bloc,DCTBloc);
-			if(choix == 1) filtreA(DCTBloc);
-			if(choix == 2) filtreB(DCTBloc,1);
-			RecopieBlock(DCTBloc,DCT,i,j);
+//=======================================================================================
+// Quantification Inverse
+//=======================================================================================
 
-			Mat DCTBlocInv;
-			if(choix == 2) filtreB(DCTBloc,2);
-			dct(DCTBloc,DCTBlocInv,DCT_INVERSE);
-			RecopieBlock(DCTBlocInv,DCTinv,i,j);
-		}
+void quantifInv(int choix,int & val, int & valQuantifInverse) {
+	if(choix==0){
+		valQuantifInverse = val;
+	}
+	else{
+		valQuantifInverse = (val + val - choix)/2;
 	}
 }
 
+uchar min(uchar a,uchar b, uchar c,uchar & indice){
+	uchar res = a;
+	indice = 1;
+	if(b<res){
+		res = b;
+		indice = 2;
+	} 
+	if(c<res){
+		res = c;
+		indice = 3;
+	}
+	return res;
+}
 
 //=======================================================================================
 //=======================================================================================
@@ -362,131 +273,207 @@ int main(int argc, char** argv){
   
   std::vector<Mat> canaux;
   split(imYCrCb,canaux);
-  std::string noms[] = {"Y","Cr","Cb"};
-  int i = 0;
-  for(Mat im : canaux) {
-	Mat imSaveCanaux;
-	saveImage(im, imSaveCanaux, noms[i]);
-	i++;
-  }
+  Mat imYUchar;
+  saveImage(canaux[0], imYUchar, "Y");
 
   /*****
-   * DCT
+   * Prédicteurs
    *****/
+
+  int choixPredicteur;
+  cout << "Choisissez un prédicteur(1,2,3)" << endl;
+  cout << "1 : MICD Mono-dimensionnelle" << endl;
+  cout << "2 : MICD Bi-dimensionnelle" << endl;
+  cout << "3 : MICDA" << endl;
+  cin >> choixPredicteur;
+
+  int choixQuantif;
+  cout << "Choisissez un quantificateur (2,4,6,8,...))" << endl;
+  cin >> choixQuantif;
   
-  i = 0;
-  Mat dIm;
-  Mat dinvIm;
-  int choixFiltre;
-  cout << "Choisissez un filtre (1,2,3,4,5,6)" << endl;
-  cout << "0 : pas de filtre" << endl;
-  cout << "1 : carré en bas à droite" << endl;
-  cout << "2 : rectangle horizontal en bas" << endl;
-  cout << "3 : rectangle vertical à droite" << endl;
-  cout << "4 : carré en haut à droite" << endl;
-  cout << "5 : carré en haut à gauche" << endl;
-  cout << "6 : carré en bas à gauche" << endl;
-  cout << "7 : annulation fréquence nulle" << endl;
-  cin >> choixFiltre;
+  Mat erreurPrediction = Mat(imYUchar.rows, imYUchar.cols, CV_8UC1);
+  Mat imageReconstruite = Mat(imYUchar.rows, imYUchar.cols, CV_8UC1);
+  Mat canal = Mat(imYUchar.rows, imYUchar.cols, CV_8UC1);
+  int prediction = 0;
+  int eQuantif = 0;
+  int eQuantifInverse = 0;
+
+  for(int i = 0; i < imYUchar.rows; i++) {
+	  for(int j = 0; j < imYUchar.cols; j++) {
+		  	if(choixPredicteur == 1) prediction = micdMono(imageReconstruite,i,j);
+		  	if(choixPredicteur == 2) prediction = micdBi(imageReconstruite,i,j);
+		  	if(choixPredicteur == 3) prediction = micda(imageReconstruite,i,j);
+
+		  	erreurPrediction.at<uchar>(i,j) = imYUchar.at<uchar>(i,j)-prediction+128;
+			int erreur = (int)(erreurPrediction.at<uchar>(i,j)-128);
+			quantif(choixQuantif,erreur, eQuantif);
+			canal.at<uchar>(i,j) = eQuantif;
+			quantifInv(choixQuantif,eQuantif,eQuantifInverse);
+			imageReconstruite.at<uchar>(i,j) = prediction + eQuantifInverse;
+	  }
+  }
+  imwrite("../SaveTP3/imReconstruite.bmp", imageReconstruite);
+  
+  imwrite("../SaveTP3/imErreursPredictions.bmp", erreurPrediction);
+
+  imwrite("../SaveTP3/imCanal.bmp", canal);
+  
+
+  Mat histoErreurs;
+  computeHistogram(erreurPrediction, histoErreurs);
+  if(choixPredicteur == 1) displayHistogram(histoErreurs, "histoErreursPredictionMICD_MONO");
+  if(choixPredicteur == 2) displayHistogram(histoErreurs, "histoErreursPredictionMICD_BI");
+  if(choixPredicteur == 3) displayHistogram(histoErreurs, "histoErreursPredictionMICDA");
 
   /*
-  * Étude DCT image 
+  * Image de référence (gris = 128)
   */
-
-  for(Mat im : canaux) {
-	//dct
-	dct(im,dIm);
-	Mat imSaveDct;
-	saveImage(dIm, imSaveDct, "DCT"+noms[i]);
-
-	//Filtre
-	if(choixFiltre == 1) dIm(Rect(dIm.cols/2, dIm.rows/2, dIm.cols/2, dIm.rows/2)) = 0;
-	else if(choixFiltre == 2) dIm(Rect(0, dIm.rows/2, dIm.cols, dIm.rows/2)) = 0;
-	else if(choixFiltre == 3) dIm(Rect(dIm.cols/2, 0, dIm.cols/2, dIm.rows)) = 0;
-	else if(choixFiltre == 4) dIm(Rect(dIm.cols/2, 0, dIm.cols/2, dIm.rows/2)) = 0;
-	else if(choixFiltre == 5) dIm(Rect(0, 0, dIm.cols/2, dIm.rows/2)) = 0;
-	else if(choixFiltre == 6) dIm(Rect(0, dIm.rows/2, dIm.cols/2, dIm.rows/2)) = 0;
-	if (choixFiltre == 7) dIm.at<float>(0, 0) = 0;
-
-	//Enregistrement filtre
-	Mat masque = Mat(dIm.rows,dIm.cols, CV_32FC1);
-	for (int ligne = 0; ligne < dIm.rows; ligne++) {
-		for (int colonne = 0; colonne < dIm.cols; colonne++) {
-			masque.at<float>(ligne, colonne) = 1;
-		}
+  Mat ImageRef = Mat(imYUchar.rows, imYUchar.cols, CV_8UC1);
+  for(int i = 0; i < ImageRef.rows; i++) {
+	for(int j = 0; j < ImageRef.cols; j++) {
+		ImageRef.at<uchar>(i,j) =128;
 	}
-	if (choixFiltre == 1) masque(Rect(dIm.cols / 2, dIm.rows / 2, dIm.cols / 2, dIm.rows / 2)) = 0;
-	else if (choixFiltre == 2) masque(Rect(0, dIm.rows / 2, dIm.cols, dIm.rows / 2)) = 0;
-	else if (choixFiltre == 3) masque(Rect(dIm.cols / 2, 0, dIm.cols / 2, dIm.rows)) = 0;
-	else if (choixFiltre == 4) masque(Rect(dIm.cols / 2, 0, dIm.cols / 2, dIm.rows / 2)) = 0;
-	else if (choixFiltre == 5) masque(Rect(0, 0, dIm.cols / 2, dIm.rows / 2)) = 0;
-	else if (choixFiltre == 6) masque(Rect(0, dIm.rows / 2, dIm.cols / 2, dIm.rows / 2)) = 0;
-
-	Mat saveMasque;
-	saveImage(masque, saveMasque, "Masque");
-
-	//dct coeffs
-	Mat coeffsDCTColor;
-	Mat coeffsDCT;
-	dctCoeffs(dIm,coeffsDCTColor,coeffsDCT);
-	Mat imSaveCoeffsDctColor;
-	saveImage(coeffsDCTColor, imSaveCoeffsDctColor, "CoeffsDCTColor"+noms[i]);
-
-	Mat imSaveCoeffsDcttest;
-	saveImage(coeffsDCT, imSaveCoeffsDcttest, "CoeffsDCT"+noms[i]);
-
-	//histo dct coeffs
-	Mat histoCanaux;
-	Mat imUCHAR;
-	im.convertTo(imUCHAR, CV_8UC1, 255);
-	computeHistogram(imUCHAR, histoCanaux);
-	displayHistogram(histoCanaux, noms[i]);
-
-	Mat histoCoeffsDCT;
-	computeHistogram(coeffsDCT, histoCoeffsDCT);
-	displayHistogram(histoCoeffsDCT, noms[i]+"CoeffDCT");
-
-	//Entropie
-	cout << "Entropie " << noms[i] << " : " << entropie(imUCHAR) << endl;
-	cout << "Entropie " << noms[i] << "CoeffsDCT : " << entropie(coeffsDCT) << endl;
-
-	//dct inv
-	dct(dIm,dinvIm, DCT_INVERSE);
-	Mat imSaveInvDct;
-	saveImage(dinvIm, imSaveInvDct, "DCTInv"+noms[i]);
-
-	std::cout << "PSNR " << noms[i] << " = " << psnrFloat(im, dinvIm) << std::endl;
-	i++;
   }
 
   /*
-  * Étude DCT blocs 8*8
+  * EQM
   */
-   cout << "Nombre de lignes : " << imYCrCb.rows << endl;
-   cout << "Nombre de colonnes : " << imYCrCb.cols << endl;
+  cout<< "EQM de l'erreur :" << eqm(erreurPrediction,ImageRef) <<endl;
 
-  i = 0;
-  cout << "DCT par blocs : " << endl;
-  cout << "0 : sans filtre " << endl;
-  cout << "1 : avec filtre a) : " << endl;
-  cout << "2 : avec filtre b) : " << endl;
-  int choix;
-  cin >> choix;
-  for(Mat im : canaux) {
-	   	Mat DCT = Mat(im.rows,im.cols, CV_32FC1);
-	  	Mat DCTinv = Mat(im.rows,im.cols, CV_32FC1);
-	  	dctParBlocs(im,DCT,DCTinv, choix);
-	  	Mat imSaveDct;
-		saveImage(DCT, imSaveDct, "DCTBlocs"+noms[i]);
-		Mat imSaveInvDct;
-		saveImage(DCTinv, imSaveInvDct, "DCTBlocsInv"+noms[i]);
+  /*
+  * PSNR
+  */
+  cout<< "PSNR de l'erreur :" << psnr(erreurPrediction,ImageRef) <<endl;  
 
-		cout << "PSNR blocs " << noms[i] << " = " << psnrFloat(im, DCTinv) << endl;
-		i++;
+  /*
+  * entropie
+  */
+  cout<< "Entropie de l'erreur :" << entropie(erreurPrediction) <<endl;
+
+  /*****
+   * Décodage
+   *****/
+  Mat decodage  = Mat(canal.rows, canal.cols, CV_8UC1);
+  for(int i = 0; i < canal.rows; i++) {
+	  for(int j = 0; j < canal.cols; j++) {
+		  int indexe = canal.at<uchar>(i,j);
+		  quantifInv(choixQuantif,indexe,eQuantifInverse);
+		  if(choixPredicteur == 1) prediction = micdMono(decodage,i,j);
+		  if(choixPredicteur == 2) prediction = micdBi(decodage,i,j);
+	      if(choixPredicteur == 3) prediction = micda(decodage,i,j);
+
+		  decodage.at<uchar>(i,j) = eQuantifInverse + prediction;
+	  }
   }
 
+  imwrite("../SaveTP3/imDecode.bmp", decodage);
+
+  /*
+  * PSNR
+  */
+  cout<< "PSNR entre l'image decode et l'image initiale :" << psnr(imYUchar,decodage) <<endl;  
+  
+  /*
+  * entropie
+  */
+  cout<< "Entropie de l'image decodee :" << entropie(decodage) <<endl;
+  cout<< "Entropie de l'image initiale :" << entropie(imYUchar) <<endl;
+
+  cout << "" << endl;
+  cout << "PARTIE COMPET" << endl;
+  cout << "" << endl;
+   
+  Mat histoDecode;
+  computeHistogram(decodage, histoDecode);
+  displayHistogram(histoDecode, "histoImageDecodee");
 
   
-   
+	for(int i = 0; i < histoDecode.rows; i++) {
+		if(histoDecode.at<float>(i) > 0) std::cout<<i<<std::endl;
+	}
+
+   /** PARTIE COMPETITION **/
+  uchar prediction1 =0;
+  uchar prediction2 =0;
+  uchar prediction3 =0;
+  uchar erreurPrediction1 =0;
+  uchar erreurPrediction2 =0;
+  uchar erreurPrediction3 =0; 
+  Mat compet = Mat(imYUchar.rows, imYUchar.cols, CV_8UC1);
+  erreurPrediction  = Mat(canal.rows, canal.cols, CV_8UC1);
+  canal  = Mat(canal.rows, canal.cols, CV_8UC1);
+  imageReconstruite  = Mat(canal.rows, canal.cols, CV_8UC1);
+  uchar indice = 1;
+  for(int i = 0; i < imYUchar.rows; i++) {
+	  for(int j = 0; j < imYUchar.cols; j++) {
+		  	prediction1 = micdMono(imageReconstruite,i,j);
+		  	prediction2 = micdBi(imageReconstruite,i,j);
+		  	prediction3 = micda(imageReconstruite,i,j);
+
+		  	erreurPrediction1 = imYUchar.at<uchar>(i,j)-prediction1+128;
+		  	erreurPrediction2 = imYUchar.at<uchar>(i,j)-prediction2+128;
+		  	erreurPrediction3 = imYUchar.at<uchar>(i,j)-prediction3+128;
+			erreurPrediction.at<uchar>(i,j) = min(erreurPrediction1,erreurPrediction2,erreurPrediction3,indice);
+			compet.at<uchar>(i,j) = indice;
+			int erreur = (int)(erreurPrediction.at<uchar>(i,j)-128);
+			quantif(choixQuantif,erreur, eQuantif);
+			canal.at<uchar>(i,j) = eQuantif;
+			quantifInv(choixQuantif,eQuantif,eQuantifInverse);
+			if(indice ==1) prediction = prediction1;
+			if(indice ==2) prediction = prediction2;
+			if(indice ==3) prediction = prediction3;
+			imageReconstruite.at<uchar>(i,j) = prediction + eQuantifInverse;
+	  }
+  }
+  imwrite("../SaveTP3/imReconstruiteCompet.bmp", imageReconstruite);
+  
+  imwrite("../SaveTP3/imErreursPredictionsCompet.bmp", erreurPrediction);
+
+  imwrite("../SaveTP3/imCanalCompet.bmp", canal);
+
+  decodage  = Mat(canal.rows, canal.cols, CV_8UC1);
+  int cpt1 = 0;
+  int cpt2 = 0;
+  int cpt3 = 0;
+  for(int i = 0; i < canal.rows; i++) {
+	  for(int j = 0; j < canal.cols; j++) {
+		  int indexe = canal.at<uchar>(i,j);
+		  quantifInv(choixQuantif,indexe,eQuantifInverse);
+		  if(compet.at<uchar>(i,j) == 1) {
+			  cpt1++;
+			  prediction = micdMono(decodage,i,j);
+		  }
+		  if(compet.at<uchar>(i,j) == 2){
+			  cpt2++;
+			  prediction = micdBi(imageReconstruite,i,j);
+		  }
+	      if(compet.at<uchar>(i,j) == 3){
+			  cpt3++;
+			  prediction = micda(imageReconstruite,i,j);
+		  } 
+
+		  decodage.at<uchar>(i,j) = eQuantifInverse + prediction;
+	  }
+  }
+
+  imwrite("../SaveTP3/imDecodeCompet.bmp", decodage);
+  
+  /*
+  * PSNR
+  */
+  cout<< "PSNR entre l'image decode et l'image initiale :" << psnr(imYUchar,decodage) <<endl;  
+  
+  /*
+  * entropie
+  */
+  cout<< "Entropie de l'image decodee :" << entropie(decodage) <<endl;
+  cout<< "Entropie de l'image initiale :" << entropie(imYUchar) <<endl;
+
+  /*
+  Analyse
+  */
+  cout<< "Taux prédicteur 1 : " << (double)(cpt1)/(double)(canal.rows*canal.cols) <<endl;
+  cout<< "Taux prédicteur 2 : " << (double)(cpt2)/(double)(canal.rows*canal.cols) <<endl;
+  cout<< "Taux prédicteur 3 : " << (double)(cpt3)/(double)(canal.rows*canal.cols) <<endl;
   return 0;
 }
