@@ -349,6 +349,7 @@ int main(int argc, char** argv){
   * entropie
   */
   cout<< "Entropie de l'erreur :" << entropie(erreurPrediction) <<endl;
+  cout<< "Entropie de l'erreur quantifiée :" << entropie(canal) <<endl;
 
   /*****
    * Décodage
