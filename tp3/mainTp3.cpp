@@ -387,11 +387,6 @@ int main(int argc, char** argv){
   computeHistogram(decodage, histoDecode);
   displayHistogram(histoDecode, "histoImageDecodee");
 
-  
-	for(int i = 0; i < histoDecode.rows; i++) {
-		if(histoDecode.at<float>(i) > 0) std::cout<<i<<std::endl;
-	}
-
    /** PARTIE COMPETITION **/
   uchar prediction1 =0;
   uchar prediction2 =0;
